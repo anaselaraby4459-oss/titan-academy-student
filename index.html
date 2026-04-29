@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة الطالب - لوحة التميز</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1; 
+            --bg-body: #f1f5f9; 
+            --card-bg: #ffffff; 
+            --text-main: #1e293b;
+            --text-dim: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; transition: 0.3s; }
+        body { background: var(--bg-body); color: var(--text-main); line-height: 1.6; }
+
+        #login-page { 
+            height: 100vh; display: flex; align-items: center; justify-content: center; 
+            background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
+        }
+        .login-card { 
+            background: var(--card-bg); padding: 3rem; border-radius: 24px; 
+            width: 90%; max-width: 420px; text-align: center; 
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); border: 1px solid var(--border);
+        }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 1.5rem; padding: 1.5rem; background: var(--card-bg);
+            border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        }
+
+        /* تصميم قسم التقييم الجديد */
+        .eval-section {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px; margin-bottom: 2.5rem;
+        }
+        .eval-card {
+            background: var(--card-bg); padding: 1.5rem; border-radius: 20px;
+            text-align: center; border: 1px solid var(--border);
+        }
+        .eval-score { font-size: 1.8rem; font-weight: 800; color: var(--primary); display: block; }
+        .eval-label { color: var(--text-dim); font-size: 0.9rem; font-weight: 600; }
+
+        .lesson-card { 
+            background: var(--card-bg); border-radius: 20px; overflow: hidden; 
+            margin-bottom: 2.5rem; border: 1px solid var(--border);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04);
+        }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        .lesson-content { padding: 2rem; }
+
+        input { 
+            width: 100%; padding: 0.9rem; margin: 1.5rem 0; border-radius: 12px; 
+            border: 2px solid var(--border); text-align: center; outline: none;
+        }
+        .btn { padding: 0.9rem 1.5rem; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; background: var(--primary); color: white; width: 100%; }
+        
+        .file-link { 
+            display: flex; flex-direction: column; gap: 8px; margin-top: 1rem;
+        }
+        .link-item {
+            text-decoration: none; padding: 12px; background: #f8fafc; border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text-main); font-weight: 600; display: flex; align-items: center; gap: 10px;
+        }
+        .link-item:hover { background: #eef2ff; border-color: var(--primary); color: var(--primary); }
+
+        .badge { background: #e0e7ff; color: #4338ca; padding: 6px 16px; border-radius: 30px; font-weight: 700; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <div id="login-page">
+        <div class="login-card">
+            <div style="background: #eef2ff; width: 70px; height: 70px; line-height: 70px; border-radius: 20px; margin: 0 auto 1.5rem;">
+                <i class="fas fa-rocket" style="font-size: 2.2rem; color: var(--primary); vertical-align: middle;"></i>
+            </div>
+            <h2>مرحباً بك يا بطل</h2>
+            <input type="text" id="student-code-input" placeholder="أدخل كود الطالب">
+            <button class="btn" onclick="studentLogin()">دخول للمنصة</button>
+        </div>
+    </div>
+
+    <main id="main-platform" style="display: none;">
+        <div class="container">
+            <header>
+                <div>
+                    <h1 id="welcome-msg">مرحباً</h1>
+                    <span class="badge" id="level-badge">المستوى</span>
+                </div>
+                <button class="btn" style="width: auto; background: #fee2e2; color: #ef4444;" onclick="location.reload()">خروج</button>
+            </header>
+
+            <div class="eval-section" id="eval-area">
+                <div class="eval-card">
+                    <span class="eval-label">الواجب</span>
+                    <span class="eval-score" id="score-work">-</span>
+                </div>
+                <div class="eval-card">
+                    <span class="eval-label">الأداء التقني</span>
+                    <span class="eval-score" id="score-perf">-</span>
+                </div>
+                <div class="eval-card">
+                    <span class="eval-label">السلوك</span>
+                    <span class="eval-score" id="score-beh">-</span>
+                </div>
+            </div>
+
+            <div id="lessons-list"></div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgMV79LTyiQerEOZvtuszH6ONaOAset5c",
+            authDomain: "programming-cc297.firebaseapp.com",
+            projectId: "programming-cc297",
+            storageBucket: "programming-cc297.firebasestorage.app",
+            messagingSenderId: "131761323515",
+            appId: "1:131761323515:web:50641907e66eed129e9f5e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.studentLogin = function() {
+            const code = document.getElementById('student-code-input').value;
+            if(!code) return alert("اكتب الكود أولاً");
+
+            onValue(ref(db, 'students'), (snap) => {
+                const students = snap.val();
+                let foundKey = null;
+                let studentData = null;
+
+                for(let key in students) {
+                    if(students[key].code === code) {
+                        foundKey = key;
+                        studentData = students[key];
+                        break;
+                    }
+                }
+
+                if(studentData) {
+                    startPlatform(studentData, foundKey);
+                } else {
+                    alert("الكود غير صحيح!");
+                }
+            }, { onlyOnce: true });
+        }
+
+        function startPlatform(student, studentKey) {
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('main-platform').style.display = 'block';
+            document.getElementById('welcome-msg').innerText = "مرحباً يا " + student.name.split(' ')[0];
+            document.getElementById('level-badge').innerText = "المستوى " + student.level;
+
+            // جلب آخر تقييم للطالب
+            onValue(ref(db, `students/${studentKey}/evaluations`), (snap) => {
+                const evals = snap.val();
+                if(evals) {
+                    const latest = Object.values(evals).pop(); // الحصول على آخر تقييم مضاف
+                    document.getElementById('score-work').innerText = latest.work + "/10";
+                    document.getElementById('score-perf').innerText = latest.perf + "/10";
+                    document.getElementById('score-beh').innerText = latest.beh + "/10";
+                }
+            });
+
+            // جلب الدروس
+            onValue(ref(db, 'content'), (snap) => {
+                const lessons = snap.val();
+                const list = document.getElementById('lessons-list');
+                let html = "";
+
+                if(lessons) {
+                    Object.values(lessons).reverse().forEach(lesson => {
+                        if(lesson.level == student.level) {
+                            let vidId = lesson.video ? (lesson.video.split('v=')[1]?.split('&')[0] || lesson.video.split('/').pop()) : null;
+                            
+                            html += `
+                                <div class="lesson-card">
+                                    ${vidId ? `<div class="video-container"><iframe src="https://www.youtube.com/embed/${vidId}" allowfullscreen></iframe></div>` : ''}
+                                    <div class="lesson-content">
+                                        <h2>${lesson.title}</h2>
+                                        <p style="color:var(--text-dim); margin: 10px 0;">${lesson.desc || ''}</p>
+                                        <div class="file-link">
+                                            ${lesson.code ? `<a href="${lesson.code}" target="_blank" class="link-item"><i class="fas fa-code"></i> عرض الكود البرمجي</a>` : ''}
+                                            ${lesson.pdf ? `<a href="${lesson.pdf}" target="_blank" class="link-item"><i class="fas fa-file-pdf"></i> تحميل الملخص (PDF)</a>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+                list.innerHTML = html || "<p style='text-align:center;'>لا توجد دروس حالياً</p>";
+            });
+        }
+    </script>
+</body>
+</html>
