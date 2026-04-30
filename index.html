@@ -38,7 +38,6 @@
             border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
         }
 
-        /* تصميم قسم التقييم الجديد */
         .eval-section {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px; margin-bottom: 2.5rem;
@@ -75,6 +74,13 @@
         .link-item:hover { background: #eef2ff; border-color: var(--primary); color: var(--primary); }
 
         .badge { background: #e0e7ff; color: #4338ca; padding: 6px 16px; border-radius: 30px; font-weight: 700; font-size: 0.9rem; }
+
+        /* ستايل المجتمع الجديد */
+        .community-card { background: var(--card-bg); border-radius: 20px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid var(--border); }
+        .post-input-area { display: flex; gap: 10px; margin-bottom: 1.5rem; }
+        .post-input { margin: 0; text-align: right; }
+        .post-item { background: #f8fafc; padding: 1rem; border-radius: 15px; margin-bottom: 10px; border: 1px solid var(--border); }
+        .post-header { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--primary); font-weight: bold; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -115,13 +121,23 @@
                 </div>
             </div>
 
+            <!-- قسم المجتمع الجديد -->
+            <div class="community-card">
+                <h3><i class="fas fa-users"></i> مجتمع المبرمجين (مستوى <span id="comm-lvl">-</span>)</h3>
+                <div class="post-input-area">
+                    <input type="text" id="post-text" class="post-input" placeholder="شارك زملائك سؤالاً أو معلومة...">
+                    <button class="btn" style="width: auto;" onclick="sendPost()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+                <div id="community-posts"></div>
+            </div>
+
             <div id="lessons-list"></div>
         </div>
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDgMV79LTyiQerEOZvtuszH6ONaOAset5c",
@@ -134,6 +150,8 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+
+        let currentStudent = null;
 
         window.studentLogin = function() {
             const code = document.getElementById('student-code-input').value;
@@ -153,6 +171,7 @@
                 }
 
                 if(studentData) {
+                    currentStudent = { ...studentData, key: foundKey };
                     startPlatform(studentData, foundKey);
                 } else {
                     alert("الكود غير صحيح!");
@@ -165,12 +184,36 @@
             document.getElementById('main-platform').style.display = 'block';
             document.getElementById('welcome-msg').innerText = "مرحباً يا " + student.name.split(' ')[0];
             document.getElementById('level-badge').innerText = "المستوى " + student.level;
+            document.getElementById('comm-lvl').innerText = student.level;
+
+            // جلب منشورات المجتمع
+            onValue(ref(db, 'community'), (snap) => {
+                const posts = snap.val();
+                const container = document.getElementById('community-posts');
+                let html = "";
+                if(posts) {
+                    Object.values(posts).reverse().forEach(p => {
+                        if(p.level == student.level) {
+                            html += `
+                                <div class="post-item">
+                                    <div class="post-header">
+                                        <span>${p.sender}</span>
+                                        <span style="color:var(--text-dim); font-weight:normal;">${p.time || ''}</span>
+                                    </div>
+                                    <div>${p.text}</div>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+                container.innerHTML = html || "<p style='text-align:center; color:var(--text-dim);'>لا توجد منشورات بعد</p>";
+            });
 
             // جلب آخر تقييم للطالب
             onValue(ref(db, `students/${studentKey}/evaluations`), (snap) => {
                 const evals = snap.val();
                 if(evals) {
-                    const latest = Object.values(evals).pop(); // الحصول على آخر تقييم مضاف
+                    const latest = Object.values(evals).pop();
                     document.getElementById('score-work').innerText = latest.work + "/10";
                     document.getElementById('score-perf').innerText = latest.perf + "/10";
                     document.getElementById('score-beh').innerText = latest.beh + "/10";
@@ -206,6 +249,19 @@
                 }
                 list.innerHTML = html || "<p style='text-align:center;'>لا توجد دروس حالياً</p>";
             });
+        }
+
+        window.sendPost = function() {
+            const txt = document.getElementById('post-text').value;
+            if(!txt || !currentStudent) return;
+            
+            push(ref(db, 'community'), {
+                sender: currentStudent.name,
+                text: txt,
+                level: currentStudent.level,
+                time: new Date().toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})
+            });
+            document.getElementById('post-text').value = "";
         }
     </script>
 </body>
